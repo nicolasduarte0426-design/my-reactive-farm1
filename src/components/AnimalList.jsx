@@ -3,6 +3,8 @@ import Alert from "./Alert.jsx";
 
 export default function AnimalList({ animals = [], onSelect, children }) {
   const isEmpty = !animals || animals.length === 0;
+  const [animals, setAnimals] = useState([{ id: 'demo', name: 'Demo Animal', species: 'Demo', age: 1 }]);
+
 
   return (
     <section aria-label="Animals list" className="space-y-4">
