@@ -1,33 +1,81 @@
-import AnimalCard from "./AnimalCard.jsx";
-import Alert from "./Alert.jsx";
+import React, { useState, useMemo } from "react";
+import AnimalCard from "./AnimalCard";
 
-export default function AnimalList({ animals = [], onSelect, children }) {
-  const isEmpty = !animals || animals.length === 0;
+export default function AnimalList({ animals, loading, typeFilter }) {
+  
+  const [ageFilter, setAgeFilter] = useState("all"); 
+  const filteredAnimals = useMemo(() => {
+    if (!animals || animals.length === 0) return [];
+
+    return animals.filter((animal) => {
+      const matchType =
+        typeFilter === "all" || typeof typeFilter === "undefined"
+          ? true
+          : animal.type === typeFilter;
+
+      let ageValue = null;
+      if (animal.age !== undefined && animal.age !== null) {
+        const n = Number(animal.age);
+        ageValue = Number.isNaN(n) ? null : n;
+      }
+
+      const matchAge =
+        ageFilter === "all" ||
+        (ageFilter === "young" && ageValue !== null && ageValue < 2) ||
+        (ageFilter === "adult" && ageValue !== null && ageValue >= 2);
+
+      return matchType && matchAge;
+    });
+  }, [animals, typeFilter, ageFilter]);
+
+  if (loading) {
+    return <p>Cargando animales...</p>;
+  }
+
+  if (filteredAnimals.length === 0) {
+    return (
+      <div>
+        {/* Controles deben seguir visibles */}
+        <h3>Filtros</h3>
+        <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+          <label htmlFor="ageFilter">Edad:</label>
+          <select
+            id="ageFilter"
+            value={ageFilter}
+            onChange={(e) => setAgeFilter(e.target.value)}
+          >
+            <option value="all">Todas</option>
+            <option value="young">Menores de 2 años</option>
+            <option value="adult">2 años o más</option>
+          </select>
+        </div>
+
+        <p>No hay animales que coincidan con los filtros.</p>
+      </div>
+    );
+  }
 
   return (
-    <section aria-label="Animals list" className="space-y-4">
-      {/* Zona de composición para filtros/acciones */}
-      {children && (
-        <div className="flex flex-wrap items-center gap-3">{children}</div>
-      )}
-
-      {/* Empty state */}
-      {isEmpty ? (
-        <Alert variant="info">
-          No animals found. Add a new one to get started 🐾
-        </Alert>
-      ) : (
-        <ul
-          role="list"
-          className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+    <div>
+      <h3>Filtros</h3>
+      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+        <label htmlFor="ageFilter">Edad:</label>
+        <select
+          id="ageFilter"
+          value={ageFilter}
+          onChange={(e) => setAgeFilter(e.target.value)}
         >
-          {animals.map((animal) => (
-            <li key={animal.id} role="listitem">
-              <AnimalCard animal={animal} onSelect={onSelect} />
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+          <option value="all">Todas</option>
+          <option value="young">Menores de 2 años</option>
+          <option value="adult">2 años o más</option>
+        </select>
+      </div>
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+        {filteredAnimals.map((animal) => (
+          <AnimalCard key={animal.id} animal={animal} />
+        ))}
+      </div>
+    </div>
   );
 }
